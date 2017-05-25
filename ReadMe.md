@@ -1,16 +1,16 @@
 # Android Bluetooth scanner
 
-Easy to use.
+Min SDK 18. Easy to use from LL to M.
 
 Use BtScanner to search bluetooth device.
 
-New a scanner
+#### New a scanner
 ```java
 BtScanner mScanner = new BtScanner(3000);  // Input scan peroid (ms)
 // or use defult constructor BtScanner()
 ```
 
-Add listener
+#### Add scan result listener
 ```java
 mScanner.addListener(new BtScanner.Listener() {
             @Override
@@ -28,7 +28,7 @@ mScanner.startScan(); // start scan
 mScanner.stopScan();  // stop scan
 ```
 
-Some configs
+#### Some configs
 ```java
 mScanner.setScanPeriod(50000);      // Scan time: 50000 ms
 mScanner.setNotifyInterval(500);    // Notify scan result every 500 ms
@@ -39,6 +39,21 @@ Clear listener when your work done.
 Call this in `Activity.onDestroy()` or somewhere else.
 ```java
 mScanner.clearListener();
+```
+
+Add `ScanFilter` and set `ScanSettings`  
+Note that SDK version is LL or later
+```java
+    if (BtScanner.sdkLLOrLater()) {
+        mScanner.addScanFilter(new ScanFilter.Builder()
+                .setDeviceName("XXX")
+                .setDeviceAddress("12:34:56:78:90:EA")
+                .build());
+
+        mScanner.setScanSettings(new ScanSettings.Builder()
+                .setReportDelay(100)
+                .build());
+    }
 ```
 
 ### Source code
