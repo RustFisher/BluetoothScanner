@@ -1,4 +1,4 @@
-package com.rust.bluetoothscanner;
+package com.rustfisher.bluetoothscanner;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -6,8 +6,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.rust.btscanner.BtDeviceItem;
-import com.rust.btscanner.BtScanner;
+import com.rustfisher.btscanner.BtDeviceItem;
+import com.rustfisher.btscanner.BtScanner;
 
 import java.util.ArrayList;
 

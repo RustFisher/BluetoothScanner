@@ -1,4 +1,4 @@
-package com.rust.bluetoothscanner;
+package com.rustfisher.btscanner;
 
 import org.junit.Test;
 

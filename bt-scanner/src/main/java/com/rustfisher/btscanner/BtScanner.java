@@ -1,4 +1,4 @@
-package com.rust.btscanner;
+package com.rustfisher.btscanner;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;

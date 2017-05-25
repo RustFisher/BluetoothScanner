@@ -1,4 +1,4 @@
-package com.rust.bluetoothscanner;
+package com.rustfisher.btscanner;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("com.rust.bluetoothscanner", appContext.getPackageName());
+        assertEquals("com.rust.bt_scanner.test", appContext.getPackageName());
     }
 }
