@@ -4,7 +4,9 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
+import android.bluetooth.le.ScanSettings;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -26,11 +28,14 @@ public final class BtScanner {
     private long scanPeriod = 14000L;     // default scan period - start scan to stop scan
     private long notifyInterval = 2000L;  // default notify interval
     private boolean loadBondDevice = true;// load bonded device to result list
+    private boolean scanning;
 
     public interface Listener {
+
         void onDeviceListUpdated(ArrayList<BtDeviceItem> list);
 
         void onScanning(boolean scan);
+
     }
 
     private BluetoothAdapter btAdapter;
@@ -38,10 +43,10 @@ public final class BtScanner {
     private ArrayList<BtDeviceItem> deviceList;
     private List<Listener> listeners;
     private NotifyScanListThread notifyScanListThread;
-    private BluetoothLeScanner bleScanner; // For LOLLIPOP or newer
-    private ScanCallback bleScanCallback;  // For LOLLIPOP or newer
-
-    private boolean scanning;
+    private BluetoothLeScanner bleScanner;  // For LOLLIPOP or newer
+    private ScanCallback bleScanCallback;   // For LOLLIPOP or newer
+    private List<ScanFilter> scanFilterList;// For LOLLIPOP or newer
+    private ScanSettings scanSettings;      // For LOLLIPOP or newer
 
     public BtScanner() {
         initBtUtils();
@@ -60,9 +65,39 @@ public final class BtScanner {
         deviceList = new ArrayList<>();
         listeners = new ArrayList<>();
         handler = new Handler(Looper.getMainLooper());
-        if (laterThanLL()) {
+        if (noBt()) return;
+        if (sdkLLOrLater()) {
             bleScanner = btAdapter.getBluetoothLeScanner();
+            scanFilterList = new ArrayList<>(10);
             initBleScanCallback();
+        }
+    }
+
+    private boolean noBt() {
+        if (null == btAdapter) {
+            Log.e(TAG, "This device does not have bluetooth");
+            return true;
+        }
+        return false;
+    }
+
+    public void clearScanFilterList() {
+        scanFilterList.clear();
+    }
+
+    public void addScanFilter(ScanFilter scanFilter) {
+        if (sdkLLOrLater()) {
+            scanFilterList.add(scanFilter);
+        }
+    }
+
+    public ScanSettings getScanSettings() {
+        return scanSettings;
+    }
+
+    public void setScanSettings(ScanSettings scanSettings) {
+        if (sdkLLOrLater() && null != scanSettings) {
+            this.scanSettings = scanSettings;
         }
     }
 
@@ -137,7 +172,10 @@ public final class BtScanner {
                 stopNotifyThread();
                 scanning = false;
                 notifyScanStatus(false);
-                if (laterThanLL()) {
+                if (noBt()) {
+                    return;
+                }
+                if (sdkLLOrLater()) {
                     bleScanner.stopScan(bleScanCallback);
                 } else {
                     btAdapter.stopLeScan(defBleScanCallback);
@@ -161,7 +199,13 @@ public final class BtScanner {
         }
     }
 
+    /**
+     * Start scan
+     */
     public void startScan() {
+        if (noBt()) {
+            return;
+        }
         if (!btIsOn()) {
             Log.e(TAG, "start scan fail, bt is not On.  Bt state = " + btAdapter.getState());
             return;
@@ -173,9 +217,14 @@ public final class BtScanner {
         }
         handler.postDelayed(stopScanLeRunnable, scanPeriod);
         scanning = true;
-        if (laterThanLL()) {
-            bleScanner.startScan(bleScanCallback);
-            Log.d(TAG, "bleScanner startScan");
+        if (sdkLLOrLater()) {
+            if (!scanFilterList.isEmpty() && null != scanSettings) {
+                bleScanner.startScan(scanFilterList, scanSettings, bleScanCallback);
+                Log.d(TAG, "bleScanner startScan with filter list(" + scanFilterList.size() + ") , " + scanSettings);
+            } else {
+                bleScanner.startScan(bleScanCallback);
+                Log.d(TAG, "bleScanner start scan");
+            }
         } else {
             btAdapter.startLeScan(defBleScanCallback);
             Log.d(TAG, "btAdapter startLeScan");
@@ -185,6 +234,9 @@ public final class BtScanner {
     }
 
     public void stopScan() {
+        if (noBt()) {
+            return;
+        }
         if (!btIsOn()) {
             Log.e(TAG, "stop scan fail, bt is not On.  Bt state = " + btAdapter.getState());
             return;
@@ -193,7 +245,7 @@ public final class BtScanner {
         handler.removeCallbacks(null);
         scanning = false;
         notifyScanStatus(false);
-        if (laterThanLL()) {
+        if (sdkLLOrLater()) {
             bleScanner.stopScan(bleScanCallback);
         } else {
             btAdapter.stopLeScan(defBleScanCallback);
@@ -201,12 +253,12 @@ public final class BtScanner {
     }
 
     private void initBleScanCallback() {
-        if (laterThanLL()) {
+        if (sdkLLOrLater()) {
             bleScanCallback = new ScanCallback() {
                 @Override
                 public void onScanResult(int callbackType, ScanResult result) {
                     super.onScanResult(callbackType, result);
-                    if (laterThanLL()) { // to avoid error
+                    if (sdkLLOrLater()) { // to avoid error
                         String name = result.getDevice().getName();
                         if (TextUtils.isEmpty(name)) {
                             return;
@@ -314,7 +366,11 @@ public final class BtScanner {
         return btAdapter.isEnabled();
     }
 
-    private static boolean laterThanLL() {
+    public static boolean sdkLLOrLater() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
+    }
+
+    public static boolean sdkMOrLater() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
     }
 }
