@@ -33,7 +33,7 @@ dependencies {
 
 }
 
-version = "1.0.0"
+version = "1.0.1"
 
 def siteUrl = 'https://github.com/RustFisher/BluetoothScanner'
 def gitUrl = 'git@github.com:RustFisher/BluetoothScanner.git'

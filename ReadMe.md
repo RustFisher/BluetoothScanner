@@ -1,6 +1,10 @@
 # Android Bluetooth scanner
 
-Easy to use.
+Make bluetooth more easier.
+
+```
+compile 'com.rustfisher.hardware:bt-scanner:1.0.1'
+```
 
 Use BtScanner to search bluetooth device.
 
